@@ -32,12 +32,10 @@ service customerService @(requires: 'customer') {
 
     entity getCustomer   as projection on DA.Customer;
 
-    @restrict: [
-        {
-            grant: 'READ',
-            to   : 'customer'
-        }
-    ]
+    @restrict: [{
+        grant: 'READ',
+        to   : 'customer'
+    }]
     entity getProduct    as projection on DA.Product;
 
     @restrict: [

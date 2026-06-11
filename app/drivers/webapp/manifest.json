@@ -31,6 +31,16 @@
           "semanticObject": "semanticDriver",
           "action": "show",
           "title": "{{semanticDriver-show.flpTitle}}",
+          "icon": "sap-icon://shipping-status",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        },
+        "semanticDriver-Display": {
+          "semanticObject": "semanticDriver",
+          "action": "Display",
+          "title": "{{semanticDriver-Display.flpTitle}}",
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"

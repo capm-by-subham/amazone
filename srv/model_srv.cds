@@ -14,6 +14,7 @@ service adminService {
     entity getProduct            as projection on DA.Product;
     entity getWarehouseInventory as projection on DA.WarehouseInventory;
     entity getOrderItems         as projection on DA.OrderItems;
+    entity getAvailableDriver    as projection on DA.AvailableDrivers;
 }
 
 //require   Custmers

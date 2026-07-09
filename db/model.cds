@@ -121,3 +121,12 @@ entity OrderItems : cuid {
     product  : Association to one Product;
     quantity : Integer;
 }
+
+
+@cds.persistence.exists
+entity AvailableDrivers {
+    key ID           : String(36);
+        name         : String(100);
+        licenseType  : String(100);
+        loadCapacity : Integer;
+}

@@ -1,0 +1,7 @@
+VIEW DeliveryAssignment_AvailableDrivers as
+
+SELECT d.ID , d.NAME, d.licenseType , v.maxLoadCapacity as loadCapacity
+FROM DeliveryAssignment_Driver as d
+LEFT OUTER JOIN DeliveryAssignment_Vehicle as v
+ ON d.assignedVehicle_ID = v.ID
+WHERE d.status ='A'; 

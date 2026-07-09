@@ -95,22 +95,22 @@ entity Shipment : cuid, managed {
 }
 
 entity DeliveryAssignment : cuid {
-    shipment                  : Association to Shipment;
-    driver                    : Association to Driver;
-    vehicle                   : Association to Vehicle;
-    assignedDate              : Date;
-    deliveryStatus            : String(100);
+    shipment                          : Association to Shipment;
+    driver                            : Association to Driver;
+    vehicle                           : Association to Vehicle;
+    assignedDate                      : Date;
+    deliveryStatus                    : String(100);
     virtual deliveryStatusCriticality : Integer;
 }
 
 
 entity Order : cuid, managed {
-    items     : Composition of many OrderItems
-                    on items.order = $self;
-    orderDate : Date;
-    status            : String(20) enum {
-        Open      = 'Open';
-        Assigned  = 'Assigned';
+    items                     : Composition of many OrderItems
+                                    on items.order = $self;
+    orderDate                 : Date;
+    status                    : String(20) enum {
+        Open = 'Open';
+        Assigned = 'Assigned';
         Delivered = 'Delivered';
     } default 'Open';
     virtual statusCriticality : Integer;
@@ -129,4 +129,10 @@ entity AvailableDrivers {
         name         : String(100);
         licenseType  : String(100);
         loadCapacity : Integer;
+}
+
+@cds.persistence.exists
+entity WARE_HOUSE_DRIVER {
+    WareHouse_Name : String(100);
+    DRIVER_NAME    : String(100);
 }

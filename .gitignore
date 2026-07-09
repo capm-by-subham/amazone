@@ -23,3 +23,6 @@ app/*/package-lock.json
 
 # @cap-js/cds-typer
 @cds-models
+
+# auto generated wildcard
+db/.env

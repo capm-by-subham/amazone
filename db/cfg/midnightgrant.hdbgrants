@@ -1,0 +1,22 @@
+{
+	"ServiceName_1": {
+		"application_user": {
+			"schema_roles": [
+				{
+					"roles": [
+						"DB_READ"
+					]
+				}
+			]
+		},
+		"object_owner": {
+			"schema_roles": [
+				{
+					"roles": [
+						"DB_READ_GRANTOR#"
+					]
+				}
+			]
+		}
+	}
+}

@@ -1,198 +1,205 @@
 _schema-version: 3.3.0
 ID: delivery_management_system
+description: A simple CAP project.
 version: 1.0.0
-description: "A simple CAP project."
+modules:
+- name: delivery_management_system-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: delivery_management_system-auth
+  - name: delivery_management_system-db
+  - name: delivery_management_system-destination
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+  build-parameters:
+    builder: npm-ci
+- name: delivery_management_system-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: delivery_management_system-db
+    properties:
+      TARGET_CONTAINER: ~{hdi-container-name}
+  - name: cross-container-service-1
+    group: SERVICE_REPLACEMENTS
+    properties:
+      key: ServiceName_1
+      service: ~{the-service-name}
+  parameters:
+    buildpack: nodejs_buildpack
+- name: delivery_management_system
+  type: approuter.nodejs
+  path: app/router
+  requires:
+  - name: srv-api
+    group: destinations
+    properties:
+      forwardAuthToken: true
+      name: srv-api
+      url: ~{srv-url}
+  - name: delivery_management_system-auth
+  - name: delivery_management_system-html5-runtime
+  provides:
+  - name: app-api
+    properties:
+      app-protocol: ${protocol}
+      app-uri: ${default-uri}
+  parameters:
+    disk-quota: 256M
+    keep-existing-routes: true
+    memory: 256M
+- name: delivery_management_system-app-deployer
+  type: com.sap.application.content
+  path: gen
+  requires:
+  - name: delivery_management_system-auth
+  - name: srv-api
+  - name: delivery_management_system-html5-repo-host
+    parameters:
+      config:
+        HTML5Runtime_enabled: true
+      content-target: true
+  parameters:
+    config:
+      destinations:
+      - Authentication: NoAuthentication
+        HTML5.DynamicDestination: true
+        HTML5.ForwardAuthToken: true
+        Name: srv-api
+        ProxyType: Internet
+        Type: HTTP
+        URL: ~{srv-api/srv-url}
+  build-parameters:
+    build-result: app/
+    requires:
+    - artifacts:
+      - customer.zip
+      name: delivery_management_systemcustomer
+      target-path: app/
+    - artifacts:
+      - drivers.zip
+      name: delivery_management_systemdrivers
+      target-path: app/
+- name: delivery_management_systemcustomer
+  type: html5
+  path: app/customer
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm ci
+    - npm run build
+    supported-platforms: []
+- name: delivery_management_systemdrivers
+  type: html5
+  path: app/drivers
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm ci
+    - npm run build
+    supported-platforms: []
+- name: delivery_management_system-destinations
+  type: com.sap.application.content
+  requires:
+  - name: delivery_management_system-auth
+    parameters:
+      service-key:
+        name: delivery_management_system-auth-key
+  - name: delivery_management_system-html5-repo-host
+    parameters:
+      service-key:
+        name: delivery_management_system-html5-repo-host-key
+  - name: srv-api
+  - name: delivery_management_system-destination
+    parameters:
+      content-target: true
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: delivery_management_system-html5-repository
+          ServiceInstanceName: delivery_management_system-html5-repo-host
+          ServiceKeyName: delivery_management_system-html5-repo-host-key
+          sap.cloud.service: delivery_management_system.service
+        - Authentication: OAuth2UserTokenExchange
+          Name: delivery_management_system-auth
+          ServiceInstanceName: delivery_management_system-auth
+          ServiceKeyName: delivery_management_system-auth-key
+          sap.cloud.service: delivery_management_system.service
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
+resources:
+- name: delivery_management_system-auth
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      oauth2-configuration:
+        credential-types:
+        - binding-secret
+        - x509
+        redirect-uris:
+        - https://*~{app-api/app-uri}/**
+      role-collections:
+      - description: generated
+        name: customer (delivery_management_system ${org}-${space})
+        role-template-references:
+        - $XSAPPNAME.customer
+      - description: generated
+        name: driver (delivery_management_system ${org}-${space})
+        role-template-references:
+        - $XSAPPNAME.driver
+      tenant-mode: dedicated
+      xsappname: delivery_management_system-${org}-${space}
+    path: ./xs-security.json
+    service: xsuaa
+    service-plan: application
+  requires:
+  - name: app-api
+- name: delivery_management_system-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+  properties:
+    hdi-container-name: ${service-name}
+- name: delivery_management_system-destination
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: destination
+    service-plan: lite
+  requires:
+  - name: srv-api
+- name: delivery_management_system-html5-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-host
+- name: delivery_management_system-html5-runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-runtime
+- name: cross-container-service-1
+  type: org.cloudfoundry.existing-service
+  parameters:
+    service-name: mid_night_crave-db
+  properties:
+    the-service-name: ${service-name}
 parameters:
-  enable-parallel-deployments: true
   deploy_mode: html5-repo
+  enable-parallel-deployments: true
 build-parameters:
   before-all:
-    - builder: custom
-      commands:
-        - npm ci
-        - npx cds build --production
-modules:
-  - name: delivery_management_system-srv
-    type: nodejs
-    path: gen/srv
-    parameters:
-      instances: 1
-      buildpack: nodejs_buildpack
-    build-parameters:
-      builder: npm-ci
-    provides:
-      - name: srv-api # required by consumers of CAP services (e.g. approuter)
-        properties:
-          srv-url: ${default-url}
-    requires:
-      - name: delivery_management_system-auth
-      - name: delivery_management_system-db
-      - name: delivery_management_system-destination
-
-  - name: delivery_management_system-db-deployer
-    type: hdb
-    path: gen/db
-    parameters:
-      buildpack: nodejs_buildpack
-    requires:
-      - name: delivery_management_system-db
-  - name: delivery_management_system
-    type: approuter.nodejs
-    path: app/router
-    parameters:
-      keep-existing-routes: true
-      disk-quota: 256M
-      memory: 256M
-    requires:
-      - name: srv-api
-        group: destinations
-        properties:
-          name: srv-api # must be used in xs-app.json as well
-          url: ~{srv-url}
-          forwardAuthToken: true
-      - name: delivery_management_system-auth
-      - name: delivery_management_system-html5-runtime
-    provides:
-      - name: app-api
-        properties:
-          app-protocol: ${protocol}
-          app-uri: ${default-uri}
-
-  - name: delivery_management_system-app-deployer
-    type: com.sap.application.content
-    path: gen
-    build-parameters:
-      build-result: app/
-      requires:
-        - name: delivery_management_systemcustomer
-          artifacts:
-            - customer.zip
-          target-path: app/
-        - name: delivery_management_systemdrivers
-          artifacts:
-            - drivers.zip
-          target-path: app/
-    requires:
-      - name: delivery_management_system-auth
-      - name: srv-api
-      - name: delivery_management_system-html5-repo-host
-        parameters:
-          content-target: true
-          config:
-            HTML5Runtime_enabled: true
-    parameters:
-      config:
-        destinations:
-          - Name: srv-api
-            URL: ~{srv-api/srv-url}
-            Authentication: NoAuthentication
-            Type: HTTP
-            ProxyType: Internet
-            HTML5.ForwardAuthToken: true
-            HTML5.DynamicDestination: true
-
-  - name: delivery_management_systemcustomer
-    type: html5
-    path: app/customer
-    build-parameters:
-      build-result: dist
-      builder: custom
-      commands:
-        - npm ci
-        - npm run build
-      supported-platforms:
-        []
-  - name: delivery_management_systemdrivers
-    type: html5
-    path: app/drivers
-    build-parameters:
-      build-result: dist
-      builder: custom
-      commands:
-        - npm ci
-        - npm run build
-      supported-platforms:
-        []
-
-  - name: delivery_management_system-destinations
-    type: com.sap.application.content
-    requires:
-      - name: delivery_management_system-auth
-        parameters:
-          service-key:
-            name: delivery_management_system-auth-key
-      - name: delivery_management_system-html5-repo-host
-        parameters:
-          service-key:
-            name: delivery_management_system-html5-repo-host-key
-      - name: srv-api
-      - name: delivery_management_system-destination
-        parameters:
-          content-target: true
-    build-parameters:
-      no-source: true
-    parameters:
-      content:
-        instance:
-          existing_destinations_policy: update
-          destinations:
-            - Name: delivery_management_system-html5-repository
-              ServiceInstanceName: delivery_management_system-html5-repo-host
-              ServiceKeyName: delivery_management_system-html5-repo-host-key
-              sap.cloud.service: delivery_management_system.service
-            - Name: delivery_management_system-auth
-              Authentication: OAuth2UserTokenExchange
-              ServiceInstanceName: delivery_management_system-auth
-              ServiceKeyName: delivery_management_system-auth-key
-              sap.cloud.service: delivery_management_system.service
-
-resources:
-  - name: delivery_management_system-auth
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: xsuaa
-      service-plan: application
-      path: ./xs-security.json
-      config:
-        xsappname: delivery_management_system-${org}-${space}
-        tenant-mode: dedicated
-        oauth2-configuration:
-          credential-types:
-            - "binding-secret"
-            - "x509"
-          redirect-uris:
-            - https://*~{app-api/app-uri}/**
-        role-collections:
-          - name: 'customer (delivery_management_system ${org}-${space})'
-            description: 'generated'
-            role-template-references:
-              - '$XSAPPNAME.customer'
-          - name: 'driver (delivery_management_system ${org}-${space})'
-            description: 'generated'
-            role-template-references:
-              - '$XSAPPNAME.driver'
-    requires:
-      - name: app-api
-  - name: delivery_management_system-db
-    type: com.sap.xs.hdi-container
-    parameters:
-      service: hana
-      service-plan: hdi-shared
-  - name: delivery_management_system-destination
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: destination
-      service-plan: lite
-    requires:
-      - name: srv-api
-
-  - name: delivery_management_system-html5-repo-host
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-host
-  - name: delivery_management_system-html5-runtime
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-runtime
+  - builder: custom
+    commands:
+    - npm ci
+    - npx cds build --production

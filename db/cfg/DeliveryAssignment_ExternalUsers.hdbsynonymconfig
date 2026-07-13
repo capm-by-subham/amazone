@@ -1,0 +1,14 @@
+{
+  "DELIVERYASSIGNMENT_EXTERNALUSERS": {
+    "target": {
+      "object": "DB_USER",
+      "schema.configure": "mid_night_crave-db/schema"
+    }
+  },
+  "DELIVERYASSIGNMENT_ADDRESSES": {
+    "target": {
+      "object": "DB_ADDRESSES",
+      "schema.configure": "mid_night_crave-db/schema"
+    }
+  }
+}

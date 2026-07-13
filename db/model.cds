@@ -133,6 +133,31 @@ entity AvailableDrivers {
 
 @cds.persistence.exists
 entity WARE_HOUSE_DRIVER {
-    WareHouse_Name : String(100);
-    DRIVER_NAME    : String(100);
+    key WareHouse_Name : String(100);
+    key DRIVER_NAME    : String(100);
+}
+
+@cds.persistence.exists
+entity ExternalUsers {
+    key ID     : String(36);
+        name   : String;
+        email  : String;
+        number : String(10);
+        type   : String enum {
+            C = 'Customer';
+            R = 'Retsurent Owner';
+            D = 'Delivery Person';
+        };
+        Address : Association to Addresses;
+}
+
+
+@cds.persistence.exists
+entity Addresses {
+    key ID            : String(36);
+        addressLine1  : String(150) not null;
+        addressLine2  : String(150);
+        city          : String(100) not null;
+        stateProvince : String(100);
+        postalCode    : String(20);
 }

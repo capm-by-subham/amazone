@@ -1,22 +1,10 @@
 {
-	"ServiceName_1": {
-		"application_user": {
-			"schema_roles": [
-				{
-					"roles": [
-						"DB_READ"
-					]
-				}
-			]
-		},
-		"object_owner": {
-			"schema_roles": [
-				{
-					"roles": [
-						"DB_READ_GRANTOR#"
-					]
-				}
-			]
-		}
-	}
+  "mid_night_crave-db": {
+    "object_owner": {
+      "container_roles": ["DB_READ_GRANTOR#"]
+    },
+    "application_user": {
+      "container_roles": ["DB_READ"]
+    }
+  }
 }

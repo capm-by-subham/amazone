@@ -16,7 +16,14 @@ service adminService {
     entity getOrderItems         as projection on DA.OrderItems;
     entity getAvailableDriver    as projection on DA.AvailableDrivers;
     entity getWareHouseDriver    as projection on DA.WARE_HOUSE_DRIVER;
+
+    @readonly
+    entity Users                 as projection on DA.ExternalUsers;
+
+    entity Address                 as projection on DA.Addresses;
+
 }
+
 
 //require   Custmers
 service customerService @(requires: 'customer') {

@@ -26,11 +26,6 @@ modules:
   - name: delivery_management_system-db
     properties:
       TARGET_CONTAINER: ~{hdi-container-name}
-  - name: cross-container-service-1
-    group: SERVICE_REPLACEMENTS
-    properties:
-      key: ServiceName_1
-      service: ~{the-service-name}
   parameters:
     buildpack: nodejs_buildpack
 - name: delivery_management_system

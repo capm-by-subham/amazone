@@ -14,13 +14,6 @@ service adminService {
     entity getProduct            as projection on DA.Product;
     entity getWarehouseInventory as projection on DA.WarehouseInventory;
     entity getOrderItems         as projection on DA.OrderItems;
-    entity getAvailableDriver    as projection on DA.AvailableDrivers;
-    entity getWareHouseDriver    as projection on DA.WARE_HOUSE_DRIVER;
-
-    @readonly
-    entity Users                 as projection on DA.ExternalUsers;
-
-    entity Address                 as projection on DA.Addresses;
 
 }
 
